@@ -3,16 +3,22 @@ import System.Random
 import Control.Concurrent
 import Data.Char
 
-factorial:: Int -> Int
+factorial:: Integer -> Integer
 factorial 1 = 1
-factorial n = n * factorial (n-1)
+factorial n = n * (factorial (n-1))
 
-randomNum:: Int -> Int
-randomNum = randomRIO(1::Int,25)
+squared:: Integer -> Integer
+squared n = n * n
 
-printVal:: (Int, String, Int) -> IO()
+cubed:: Integer -> Integer
+cubed n = n * n * n
+
+randomNum:: IO Integer
+randomNum = randomRIO(1::Integer,25)
+
+printVal:: (Integer, String, Integer) -> IO()
 printVal (x, y, z) = do
-  putStr (y ++ " -> " ++ (show x) ++ " == " ++ (show z))
+  putStrLn (y ++ " -> " ++ (show x) ++ " == " ++ (show z))
 
 beginForks mVar1 mVar2 = do
   thread1 <- forkIO (forever $ do
@@ -24,9 +30,18 @@ beginForks mVar1 mVar2 = do
     putMVar mVar2 (val, "factorial", factorial val))
 
   thread3 <- forkIO (forever $ do
+    val <- takeMVar mVar1
+    putMVar mVar2 (val, "squared", squared val))
+
+  thread4 <- forkIO (forever $ do
+    val <- takeMVar mVar1
+    putMVar mVar2 (val, "cubed", cubed val))
+
+  thread5 <- forkIO (forever $ do
     val <- takeMVar mVar2
     threadDelay (1000000)
     printVal val)
+  putStrLn "Threads created"
 
 main::IO()
 main = do
